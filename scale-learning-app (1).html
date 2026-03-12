@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scale Lab — Drafting Scale Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:      #1a1a1f;
+  --ink2:     #2e2e38;
+  --ink3:     #3e3e4e;
+  --ink4:     #52526a;
+  --gold:     #c8922a;
+  --gold-lt:  #e8b85a;
+  --gold-dim: rgba(200,146,42,.15);
+  --teal:     #2a8a80;
+  --teal-lt:  #3ab5a8;
+  --red:      #cc3838;
+  --paper:    #f5f2ec;
+  --paper2:   #ede9e0;
+  --rule:     #3a3a4a;
+  --muted:    #9a9aaa;
+  --text:     #e8e8f0;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── GRID BACKGROUND ─────────────────────────────── */
+.grid-bg{position:relative}
+.grid-bg::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(200,146,42,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(200,146,42,.055) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.grid-bg>*{position:relative;z-index:1}
+
+/* ── NAV ─────────────────────────────────────────── */
+#nav{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--ink);border-bottom:1px solid var(--rule);display:flex;align-items:center;height:52px;padding:0 16px;gap:4px;overflow-x:auto;scrollbar-width:none}
+#nav::-webkit-scrollbar{display:none}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--gold-lt);letter-spacing:.06em;white-space:nowrap;margin-right:16px;flex-shrink:0}
+.nav-tab{flex-shrink:0;background:none;border:none;color:var(--ink4);font-family:'DM Mono',monospace;font-size:.63rem;letter-spacing:.05em;padding:6px 12px;border-radius:5px;cursor:pointer;transition:all .18s;white-space:nowrap}
+.nav-tab:hover{color:var(--text);background:var(--ink2)}
+.nav-tab.active{color:var(--ink);background:var(--gold-lt);font-weight:500}
+
+/* ── PAGES ───────────────────────────────────────── */
+.page{display:none;padding-top:52px;min-height:100vh}
+.page.active{display:block}
+
+/* ── HOME ────────────────────────────────────────── */
+#page-home{background:var(--ink)}
+.home-inner{max-width:860px;margin:0 auto;padding:80px 24px 80px}
+.home-eyebrow{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;margin-bottom:20px}
+.home-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(4rem,11vw,8rem);line-height:.9;letter-spacing:.02em;color:var(--text);margin-bottom:28px}
+.home-title em{color:var(--gold-lt);font-style:normal;display:block}
+.home-intro{font-size:1.05rem;line-height:1.75;color:var(--muted);max-width:540px;margin-bottom:52px;font-weight:300}
+.home-intro strong{color:var(--text);font-weight:500}
+.home-modules{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:52px}
+.module-card{background:var(--ink2);border:1px solid var(--rule);border-radius:14px;padding:22px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.module-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .22s}
+.module-card:hover{transform:translateY(-3px);border-color:var(--ink4)}
+.module-card:hover::after{transform:scaleX(1)}
+.mc-num{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--gold);letter-spacing:.12em;margin-bottom:12px}
+.mc-title{font-family:'DM Sans',sans-serif;font-weight:600;font-size:.95rem;color:var(--text);margin-bottom:6px}
+.mc-desc{font-size:.77rem;color:var(--ink4);line-height:1.6}
+.home-cta{display:inline-flex;align-items:center;gap:10px;background:var(--gold);color:var(--ink);font-family:'DM Sans',sans-serif;font-weight:700;font-size:1rem;padding:14px 32px;border:none;border-radius:99px;cursor:pointer;transition:all .2s}
+.home-cta:hover{background:var(--gold-lt);transform:scale(1.03)}
+
+/* ── CONTENT PAGES ───────────────────────────────── */
+.content-page{background:var(--ink);min-height:calc(100vh - 52px)}
+.content-header{background:var(--ink);padding:52px 24px 44px;border-bottom:2px solid var(--gold);position:relative}
+.content-header::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(200,146,42,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(200,146,42,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+.content-header-inner{max-width:860px;margin:0 auto;position:relative;z-index:1}
+.ch-eyebrow{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--gold);letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px}
+.ch-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.2rem,6vw,3.8rem);color:var(--text);letter-spacing:.03em;line-height:1;margin-bottom:12px}
+.ch-sub{font-size:.92rem;color:var(--muted);line-height:1.7;max-width:580px;font-weight:300}
+.content-body{max-width:860px;margin:0 auto;padding:36px 24px 80px}
+
+/* ── CARDS ───────────────────────────────────────── */
+.card{background:var(--ink2);border:1px solid var(--rule);border-radius:16px;padding:28px 28px 24px;margin-bottom:20px}
+.card-label{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--gold);letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-label::after{content:'';flex:1;height:1px;background:var(--rule)}
+.card-title{font-family:'DM Sans',sans-serif;font-weight:600;font-size:1.1rem;color:var(--text);margin-bottom:14px}
+
+/* ── CONCEPT CHIPS ───────────────────────────────── */
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.chip{background:var(--ink);border:1.5px solid var(--rule);border-radius:12px;padding:18px}
+.chip-label{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;font-weight:600;margin-bottom:8px;text-transform:uppercase}
+.chip-title{font-size:.92rem;color:var(--text);font-weight:700;margin-bottom:6px}
+.chip-body{font-size:.8rem;color:var(--muted);line-height:1.65}
+.chip-body strong{color:var(--text)}
+.chip.gold{border-color:rgba(200,146,42,.4)}.chip.gold .chip-label{color:var(--gold)}
+.chip.teal{border-color:rgba(42,138,128,.4)}.chip.teal .chip-label{color:var(--teal-lt)}
+.chip.red{border-color:rgba(204,56,56,.35)}.chip.red .chip-label{color:#e06060}
+
+/* ── FORMULA BLOCKS ─────────────────────────────── */
+.formula{background:var(--ink);border:1.5px solid rgba(200,146,42,.35);color:var(--gold-lt);font-family:'DM Mono',monospace;font-size:1.05rem;border-radius:10px;padding:18px 22px;margin:16px 0;line-height:1.7}
+.formula .note{display:block;margin-top:8px;font-size:.73rem;color:var(--muted)}
+
+/* ── HIGHLIGHT / CALLOUT ─────────────────────────── */
+.highlight{background:rgba(200,146,42,.08);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:16px 20px;margin:16px 0;font-size:.87rem;line-height:1.7;color:var(--muted)}
+.highlight strong{color:var(--text)}
+.callout{display:flex;gap:12px;background:rgba(42,138,128,.08);border:1px solid rgba(42,138,128,.25);border-radius:10px;padding:16px 18px;margin:16px 0;font-size:.84rem;line-height:1.65;color:var(--muted)}
+.callout.warn{background:rgba(204,56,56,.07);border-color:rgba(204,56,56,.25)}
+.callout-icon{flex-shrink:0;font-size:1rem;margin-top:1px}
+.callout strong{color:var(--text)}
+
+/* ── TWO COLUMN ─────────────────────────────────── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:580px){.two-col{grid-template-columns:1fr}}
+
+/* ── SYSTEM PANELS ───────────────────────────────── */
+.sys-panel{border-radius:12px;padding:20px;border:1.5px solid}
+.sys-panel.imp{background:rgba(200,146,42,.06);border-color:rgba(200,146,42,.25)}
+.sys-panel.met{background:rgba(42,138,128,.06);border-color:rgba(42,138,128,.25)}
+.sys-panel h3{font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;margin-bottom:10px}
+.sys-panel.imp h3{color:var(--gold-lt)}
+.sys-panel.met h3{color:var(--teal-lt)}
+.sys-panel p,.sys-panel li{font-size:.83rem;color:var(--muted);line-height:1.7}
+.sys-panel ul{padding-left:16px}
+.sys-panel li{margin-bottom:4px}
+
+/* ── STEPS ───────────────────────────────────────── */
+.steps{list-style:none;counter-reset:step;padding:0}
+.steps li{counter-increment:step;position:relative;padding:10px 10px 10px 46px;margin-bottom:6px;font-size:.87rem;color:var(--muted);line-height:1.65;border-left:2px solid var(--rule);margin-left:18px}
+.steps li::before{content:counter(step);position:absolute;left:-18px;top:9px;width:30px;height:30px;border-radius:50%;background:var(--gold);color:var(--ink);font-family:'DM Mono',monospace;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.steps li strong{color:var(--text)}
+
+/* ── BADGES ──────────────────────────────────────── */
+.badge{display:inline-block;font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.08em;padding:3px 8px;border-radius:4px;vertical-align:middle;margin-left:8px}
+.badge-imp{background:rgba(200,146,42,.15);color:var(--gold);border:1px solid rgba(200,146,42,.3)}
+.badge-met{background:rgba(42,138,128,.12);color:var(--teal-lt);border:1px solid rgba(42,138,128,.3)}
+.badge-cad{background:rgba(120,120,220,.12);color:#9090ee;border:1px solid rgba(120,120,220,.3)}
+
+/* ── TABLES ──────────────────────────────────────── */
+.data-table{width:100%;border-collapse:collapse;font-size:.83rem}
+.data-table th{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.08em;color:var(--gold);text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule)}
+.data-table td{padding:10px 14px;border-bottom:1px solid rgba(58,58,74,.6);color:var(--muted);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(255,255,255,.03)}
+.data-table td:first-child{font-family:'DM Mono',monospace;color:var(--text)}
+.imp-tag{color:var(--gold)!important;font-weight:600}
+.met-tag{color:var(--teal-lt)!important;font-weight:600}
+
+/* ── RULERS ──────────────────────────────────────── */
+.ruler-wrap{margin:20px 0 8px;overflow-x:auto;padding-bottom:8px}
+.ruler-caption{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px}
+
+/* ── CONTROLS ────────────────────────────────────── */
+.ctrl-row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin-bottom:18px}
+.ctrl-group{display:flex;flex-direction:column;gap:6px}
+.ctrl-label{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase}
+select,input[type="number"]{background:var(--ink);border:1.5px solid var(--rule);color:var(--text);border-radius:8px;padding:9px 14px;font-family:'DM Mono',monospace;font-size:.82rem;outline:none;transition:border-color .18s;-webkit-appearance:none;appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer}
+select:focus,input[type="number"]:focus{border-color:var(--gold)}
+input[type="number"]{width:120px}
+
+/* ── RESULT GRID ─────────────────────────────────── */
+.result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:16px}
+.result-cell{background:var(--ink);border:1px solid var(--rule);border-radius:10px;padding:14px 16px}
+.rc-label{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.rc-value{font-family:'DM Mono',monospace;font-size:1rem;color:var(--text);font-weight:500}
+.rc-value.big{font-size:1.3rem;color:var(--gold-lt)}
+
+/* ── ACCORDION ───────────────────────────────────── */
+.accordion{border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin-top:14px}
+.acc-head{padding:14px 18px;background:var(--ink);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:.88rem;font-weight:500;color:var(--text);user-select:none;transition:background .15s}
+.acc-head:hover{background:rgba(255,255,255,.04)}
+.acc-chevron{color:var(--muted);font-size:.7rem;transition:transform .25s}
+.accordion.open .acc-chevron{transform:rotate(180deg)}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.accordion.open .acc-body{max-height:1000px}
+.acc-inner{padding:20px}
+
+/* ── SCALE CARDS ─────────────────────────────────── */
+.scale-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px;margin-top:14px}
+.scale-card{border:1px solid var(--rule);border-radius:10px;padding:14px 16px;background:var(--ink);transition:border-color .15s}
+.scale-card:hover{border-color:var(--gold)}
+.sc-ratio{font-family:'DM Mono',monospace;font-size:1rem;color:var(--text);font-weight:500;margin-bottom:4px}
+.sc-imp{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--gold);margin-bottom:6px}
+.sc-use{font-size:.76rem;color:var(--muted);line-height:1.55}
+
+/* ── UNIT PILLS ──────────────────────────────────── */
+.unit-pills{display:flex;flex-wrap:wrap;gap:8px}
+.unit-pill{display:inline-flex;align-items:baseline;gap:6px;background:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:10px 16px}
+.up-from{font-family:'DM Mono',monospace;font-size:.95rem;color:var(--text)}
+.up-eq{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted)}
+.up-to{font-family:'DM Mono',monospace;font-size:.95rem;color:var(--teal-lt)}
+
+/* ── PAGE FOOTER ─────────────────────────────────── */
+.page-footer{border-top:1px solid var(--rule);padding:24px 0 0;margin-top:16px;display:flex;justify-content:flex-end}
+.nav-next{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--ink);font-family:'DM Sans',sans-serif;font-weight:700;font-size:.85rem;padding:12px 24px;border:none;border-radius:99px;cursor:pointer;transition:all .2s}
+.nav-next:hover{background:var(--gold-lt)}
+
+/* ── SECTION RULE ─────────────────────────────────── */
+.section-rule{border:none;border-top:1px solid var(--rule);margin:24px 0}
+
+/* ── VISUALIZER ──────────────────────────────────── */
+.vis-stage{background:var(--ink);border:1.5px solid var(--rule);border-radius:12px;padding:24px;margin-top:16px;min-height:260px;display:flex;align-items:center;justify-content:center;overflow:auto}
+
+/* ── ANIMATIONS ──────────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.page.active .content-body>*{animation:fadeUp .28s ease forwards;opacity:0}
+.page.active .content-body>*:nth-child(1){animation-delay:.04s}
+.page.active .content-body>*:nth-child(2){animation-delay:.09s}
+.page.active .content-body>*:nth-child(3){animation-delay:.14s}
+.page.active .content-body>*:nth-child(4){animation-delay:.19s}
+.page.active .content-body>*:nth-child(5){animation-delay:.23s}
+.page.active .content-body>*:nth-child(6){animation-delay:.27s}
+
+@media(max-width:620px){
+  .content-body{padding:24px 16px 60px}
+  .card{padding:20px 16px}
+  .home-inner{padding:60px 16px 60px}
+  .chips{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ───────────────────────────────────────── -->
+<nav id="nav">
+  <div class="nav-logo">SCALE LAB</div>
+  <button class="nav-tab active"   onclick="goTo('home')">Home</button>
+  <button class="nav-tab" onclick="goTo('what')">1 · What is Scale?</button>
+  <button class="nav-tab" onclick="goTo('systems')">2 · Imperial &amp; Metric</button>
+  <button class="nav-tab" onclick="goTo('tools')">3 · Scale Tools</button>
+  <button class="nav-tab" onclick="goTo('calc')">4 · Calculator</button>
+  <button class="nav-tab" onclick="goTo('visualizer')">5 · Visualizer</button>
+  <button class="nav-tab" onclick="goTo('reference')">6 · Reference</button>
+</nav>
+
+<!-- ══════════ HOME ══════════ -->
+<div id="page-home" class="page active grid-bg">
+  <div class="home-inner">
+    <div class="home-eyebrow">Scale Learning Tool</div>
+    <h1 class="home-title">UNDERSTANDING<em>SCALE</em></h1>
+    <p class="home-intro">Scale is the language of technical drawing. Learn how to read it, use it, and never get it wrong — whether you're holding a physical ruler or working in CAD.</p>
+    <div class="home-modules">
+      <div class="module-card" onclick="goTo('what')">
+        <div class="mc-num">01</div>
+        <div class="mc-title">What is Scale?</div>
+        <div class="mc-desc">Ratios, the scale formula, worked examples going both directions</div>
+      </div>
+      <div class="module-card" onclick="goTo('systems')">
+        <div class="mc-num">02</div>
+        <div class="mc-title">Imperial &amp; Metric</div>
+        <div class="mc-desc">Why Canada uses both systems and the key conversions you need</div>
+      </div>
+      <div class="module-card" onclick="goTo('tools')">
+        <div class="mc-num">03</div>
+        <div class="mc-title">Scale Tools</div>
+        <div class="mc-desc">How to read the architect's scale, engineer's scale, and metric rule</div>
+      </div>
+      <div class="module-card" onclick="goTo('calc')">
+        <div class="mc-num">04</div>
+        <div class="mc-title">Scale Calculator</div>
+        <div class="mc-desc">Enter a real size or a drawing measurement — get the answer instantly</div>
+      </div>
+      <div class="module-card" onclick="goTo('visualizer')">
+        <div class="mc-num">05</div>
+        <div class="mc-title">Scale Visualizer</div>
+        <div class="mc-desc">See what different scales actually look like on paper</div>
+      </div>
+      <div class="module-card" onclick="goTo('reference')">
+        <div class="mc-num">06</div>
+        <div class="mc-title">Reference Sheet</div>
+        <div class="mc-desc">Every common scale in one place — keep this open while you work</div>
+      </div>
+    </div>
+    <button class="home-cta" onclick="goTo('what')">Start Learning &nbsp;→</button>
+  </div>
+</div>
+
+<!-- ══════════ 1: WHAT IS SCALE ══════════ -->
+<div id="page-what" class="page">
+<div class="content-page">
+  <div class="content-header">
+    <div class="content-header-inner">
+      <div class="ch-eyebrow">Module 01</div>
+      <div class="ch-title">What is Scale?</div>
+      <div class="ch-sub">Real buildings are too large to fit on paper at their actual size. Scale is the system that lets us shrink them down — while keeping everything perfectly proportional.</div>
+    </div>
+  </div>
+  <div class="content-body">
+
+    <div class="card">
+      <div class="card-label">The Core Idea</div>
+      <p style="font-size:.92rem;color:var(--muted);line-height:1.8;margin-bottom:16px">Imagine you want to draw a house on a sheet of paper. The house might be 12 metres wide — obviously it won't fit at real size. So you shrink it down using a <strong style="color:var(--text)">scale ratio</strong>.</p>
+      <p style="font-size:.92rem;color:var(--muted);line-height:1.8;margin-bottom:16px">A scale of <strong style="color:var(--text)">1:50</strong> means that for every 1 unit on your drawing, the real object is 50 units in real life. So 1 mm on paper = 50 mm in real life. The drawing is 50 times smaller than reality.</p>
+      <div class="formula">1 : 50<span class="note">↑ drawing unit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↑ real-world unit &nbsp;&nbsp; (always the same unit on both sides)</span></div>
+      <p style="font-size:.88rem;color:var(--muted);line-height:1.8">Think of Google Maps. When you zoom out to see an entire city, every centimetre on the screen represents kilometres of real ground. That is exactly what scale does — it gives every drawing a fixed, reliable relationship to reality.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">The Two Directions</div>
+      <div class="two-col">
+        <div class="sys-panel imp">
+          <h3>🔽 Reduction Scale</h3>
+          <p>The drawing is <em>smaller</em> than the real object. The right number is bigger than the left. Examples: <strong>1:50, 1:100, 1:200</strong>.</p>
+          <p style="margin-top:10px">This is what you use for almost everything — floor plans, elevations, site plans.</p>
+        </div>
+        <div class="sys-panel met">
+          <h3>🔼 Enlargement Scale</h3>
+          <p>The drawing is <em>larger</em> than the real object. The left number is bigger than the right. Examples: <strong>2:1, 5:1, 10:1</strong>.</p>
+          <p style="margin-top:10px">Used when objects are tiny — circuit boards, mechanical fasteners, small parts.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">The Two Formulas You Need</div>
+      <p style="font-size:.9rem;color:var(--muted);line-height:1.75;margin-bottom:16px">There are only two calculations in all of scale drawing. You need to know both. The key is to always work in the <strong style="color:var(--text)">same unit throughout</strong> — pick mm and stay in mm for the whole calculation.</p>
+      <div class="two-col">
+        <div>
+          <p style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--teal-lt);letter-spacing:.1em;margin-bottom:8px">REAL → DRAWING (to draw a line)</p>
+          <div class="formula" style="font-size:.92rem">Drawing = Real ÷ Scale</div>
+        </div>
+        <div>
+          <p style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--gold);letter-spacing:.1em;margin-bottom:8px">DRAWING → REAL (to measure a line)</p>
+          <div class="formula" style="font-size:.92rem">Real = Drawing × Scale</div>
+        </div>
+      </div>
+      <hr class="section-rule">
+      <p style="font-size:.9rem;color:var(--text);font-weight:600;margin-bottom:12px">Worked Example 1 — Real to Drawing</p>
+      <p style="font-size:.87rem;color:var(--muted);line-height:1.75;margin-bottom:12px">You need to draw a wall that is <strong style="color:var(--text)">6 metres long</strong>. Your scale is <strong style="color:var(--text)">1:50</strong>. How long should the line be on your paper?</p>
+      <ol class="steps">
+        <li>Convert to millimetres: <strong>6 m = 6000 mm</strong> (always work in mm)</li>
+        <li>Divide by the scale factor: <strong>6000 ÷ 50 = 120</strong></li>
+        <li>Draw the line <strong>120 mm long</strong> on your paper</li>
+      </ol>
+      <hr class="section-rule">
+      <p style="font-size:.9rem;color:var(--text);font-weight:600;margin-bottom:12px">Worked Example 2 — Drawing to Real</p>
+      <p style="font-size:.87rem;color:var(--muted);line-height:1.75;margin-bottom:12px">You measure a line on a 1:100 drawing. It is <strong style="color:var(--text)">75 mm long</strong> on paper. What is the real-world size?</p>
+      <ol class="steps">
+        <li>Take the drawing measurement: <strong>75 mm</strong></li>
+        <li>Multiply by the scale factor: <strong>75 × 100 = 7500 mm</strong></li>
+        <li>Real size = <strong>7500 mm = 7.5 metres</strong></li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Important Rule — Dimensions on Drawings</div>
+      <p style="font-size:.9rem;color:var(--muted);line-height:1.8;margin-bottom:14px">Every number you write on a drawing — every dimension — shows the <strong style="color:var(--text)">real-world size</strong>, not the drawing size. When a builder reads "2400" on your floor plan, they know that wall is 2400 mm = 2.4 metres long in real life.</p>
+      <div class="callout warn">
+        <div class="callout-icon">⚠️</div>
+        <div><strong>Never write drawing sizes as dimensions.</strong> If a drawing is printed at a different size than intended, the dimension numbers must not change. They always describe reality — not the paper.</div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <button class="nav-next" onclick="goTo('systems')">Next: Imperial &amp; Metric →</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════ 2: SYSTEMS ══════════ -->
+<div id="page-systems" class="page">
+<div class="content-page">
+  <div class="content-header">
+    <div class="content-header-inner">
+      <div class="ch-eyebrow">Module 02</div>
+      <div class="ch-title">Imperial &amp; Metric</div>
+      <div class="ch-sub">Canada officially uses metric — but construction still runs on imperial every day. As a drafter, you need to work confidently in both.</div>
+    </div>
+  </div>
+  <div class="content-body">
+
+    <div class="card">
+      <div class="card-label">Two Systems, One Country</div>
+      <div class="two-col">
+        <div class="sys-panel imp">
+          <h3>Imperial System</h3>
+          <ul>
+            <li>Originated in Britain, centuries old</li>
+            <li>Length units: <strong>inches, feet, yards, miles</strong></li>
+            <li>12 inches = 1 foot &nbsp;·&nbsp; 3 feet = 1 yard</li>
+            <li>Canada used imperial exclusively until ~1970</li>
+            <li>Still dominant in BC residential construction — lumber, studs, ceiling heights are all in feet and inches</li>
+          </ul>
+        </div>
+        <div class="sys-panel met">
+          <h3>Metric System</h3>
+          <ul>
+            <li>Developed in France in the 1790s — built on powers of 10</li>
+            <li>Length units: <strong>mm, cm, m, km</strong></li>
+            <li>10 mm = 1 cm &nbsp;·&nbsp; 100 cm = 1 m &nbsp;·&nbsp; 1000 m = 1 km</li>
+            <li>Canada officially adopted metric in 1970</li>
+            <li>Used in engineering drawings, civil work, and most of the world</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:16px">
+        <div class="callout-icon">🇨🇦</div>
+        <div><strong>Canadian reality:</strong> Lumber is sold as 2×4, 2×6 (imperial). Road distances are in kilometres (metric). Structural and mechanical drawings mix both. You will use both — often on the same job.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Why Metric is Easier to Calculate</div>
+      <p style="font-size:.9rem;color:var(--muted);line-height:1.8;margin-bottom:16px">Metric is base-10. Every conversion is just multiplying or dividing by 10, 100, or 1000. No memorizing odd numbers. Imperial has no consistent base — you need to know that there are 12 inches in a foot, 3 feet in a yard, and 5280 feet in a mile.</p>
+      <div class="two-col">
+        <div>
+          <p style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--teal-lt);letter-spacing:.08em;margin-bottom:10px">METRIC — STRAIGHTFORWARD</p>
+          <div class="formula" style="font-size:.82rem;padding:14px 16px;line-height:2">35 mm → cm: &nbsp;35 ÷ 10 = <strong style="color:var(--gold-lt)">3.5 cm</strong><br>3.5 m → mm: &nbsp;3.5 × 1000 = <strong style="color:var(--gold-lt)">3500 mm</strong></div>
+        </div>
+        <div>
+          <p style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--gold);letter-spacing:.08em;margin-bottom:10px">IMPERIAL — REQUIRES MORE STEPS</p>
+          <div class="formula" style="font-size:.82rem;padding:14px 16px;line-height:2">3'−6" → inches: &nbsp;3×12+6 = <strong style="color:var(--gold-lt)">42 inches</strong><br>42" → feet: &nbsp;42 ÷ 12 = <strong style="color:var(--gold-lt)">3.5 feet</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Essential Conversions</div>
+      <p style="font-size:.88rem;color:var(--muted);line-height:1.75;margin-bottom:14px">These are the conversions you will use constantly. You should know the first two from memory.</p>
+      <table class="data-table">
+        <thead><tr><th>From</th><th>To</th><th>Multiply by</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>inches</td><td class="met-tag">mm</td><td>× 25.4</td><td>6" × 25.4 = 152.4 mm</td></tr>
+          <tr><td>feet</td><td class="met-tag">mm</td><td>× 304.8</td><td>8' × 304.8 = 2438.4 mm</td></tr>
+          <tr><td>mm</td><td class="imp-tag">inches</td><td>÷ 25.4</td><td>152.4 ÷ 25.4 = 6"</td></tr>
+          <tr><td>mm</td><td class="imp-tag">feet</td><td>÷ 304.8</td><td>2438.4 ÷ 304.8 = 8'</td></tr>
+          <tr><td>m</td><td class="met-tag">mm</td><td>× 1000</td><td>3.6 m × 1000 = 3600 mm</td></tr>
+          <tr><td>mm</td><td class="met-tag">m</td><td>÷ 1000</td><td>3600 ÷ 1000 = 3.6 m</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Imperial Scale Notation — How to Read It</div>
+      <p style="font-size:.9rem;color:var(--muted);line-height:1.8;margin-bottom:16px">Imperial architectural scales are written differently from metric ratios. Instead of 1:48, they say <strong style="color:var(--text)">¼" = 1'−0"</strong>. This means: every quarter inch on the drawing represents one real foot. Here's how to convert to a ratio:</p>
+      <div class="highlight"><strong>Formula:</strong> Imperial notation → ratio = 12 ÷ (drawing inches per foot). &nbsp; Example: ¼" = 1'−0" → 12 ÷ 0.25 = <strong>48</strong> → ratio is <strong>1:48</strong></div>
+      <table class="data-table" style="margin-top:14px">
+        <thead><tr><th>Imperial Notation</th><th>Drawing per foot</th><th>Ratio</th><th>Common use</th></tr></thead>
+        <tbody>
+          <tr><td class="imp-tag">3" = 1'−0"</td><td>3 inches</td><td>1 : 4</td><td>Large interior details</td></tr>
+          <tr><td class="imp-tag">1½" = 1'−0"</td><td>1.5 inches</td><td>1 : 8</td><td>Millwork, details</td></tr>
+          <tr><td class="imp-tag">1" = 1'−0"</td><td>1 inch</td><td>1 : 12</td><td>Room details</td></tr>
+          <tr><td class="imp-tag">¾" = 1'−0"</td><td>0.75 inches</td><td>1 : 16</td><td>Larger room details</td></tr>
+          <tr><td class="imp-tag">½" = 1'−0"</td><td>0.5 inches</td><td>1 : 24</td><td>Floor plan detail</td></tr>
+          <tr><td class="imp-tag">¼" = 1'−0"</td><td>0.25 inches</td><td>1 : 48</td><td>Standard floor plan</td></tr>
+          <tr><td class="imp-tag">⅛" = 1'−0"</td><td>0.125 inches</td><td>1 : 96</td><td>Smaller floor plan</td></tr>
+          <tr><td class="imp-tag">1/16" = 1'−0"</td><td>0.0625 inches</td><td>1 : 192</td><td>Site plans</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="page-footer">
+      <button class="nav-next" onclick="goTo('tools')">Next: Scale Tools →</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════ 3: TOOLS ══════════ -->
+<div id="page-tools" class="page">
+<div class="content-page">
+  <div class="content-header">
+    <div class="content-header-inner">
+      <div class="ch-eyebrow">Module 03</div>
+      <div class="ch-title">Scale Tools</div>
+      <div class="ch-sub">A scale ruler looks like a triangular prism with 6 faces. Each face has a different scale printed on it. Here is how each type works.</div>
+    </div>
+  </div>
+  <div class="content-body">
+
+    <!-- ── ARCHITECT'S SCALE ── -->
+    <div class="card">
+      <div class="card-label">Architect's Scale <span class="badge badge-imp">IMPERIAL</span></div>
+
+      <p style="font-size:.9rem;color:var(--muted);line-height:1.8;margin-bottom:20px">The architect's scale is used for architectural drawings measured in feet and inches. It has <strong style="color:var(--text)">11 different scales</strong> across its 6 edges. Each edge carries <strong style="color:var(--text)">two scales</strong> that share the same tick marks — one reads left-to-right, and the other reads right-to-left in the opposite direction. This is the most important thing to know: always find your scale's zero first, and read outward from it.</p>
+
+      <div class="chips">
+        <div class="chip gold">
+          <div class="chip-label">① Zero Mark</div>
+          <div class="chip-title">Start here, every time</div>
+          <div class="chip-body">Find the <strong>0</strong> on your chosen scale face and place it at one end of the line. This is your starting point. Never start from the end of the ruler.</div>
+        </div>
+        <div class="chip teal">
+          <div class="chip-label">② Feet Section</div>
+          <div class="chip-title">Numbers to the right of zero</div>
+          <div class="chip-body">The large numbers <strong>1, 2, 3…</strong> each represent one real foot at your scale. Count these first before worrying about inches.</div>
+        </div>
+        <div class="chip red">
+          <div class="chip-label">③ Inch Section</div>
+          <div class="chip-title">Shaded zone left of zero</div>
+          <div class="chip-body">One full foot subdivided into <strong>12 inch marks</strong>. After you find the whole feet, look here to add the remaining inches.</div>
+        </div>
+      </div>
+
+      <!-- RULER: ¼" = 1'-0", 0 to 6 feet + inch section -->
+      <!-- foot = 96px, inch = 8px, inch section left of zero -->
+      <div class="ruler-wrap">
+        <div class="ruler-caption">¼" = 1'−0" face &nbsp;·&nbsp; 0 to 6 feet &nbsp;·&nbsp; Each division = 1 real foot</div>
+        <div style="display:inline-flex;min-width:680px">
+
+          <!-- inch section -->
+          <div style="flex:0 0 96px;height:88px;background:#2a1f00;border:2px solid var(--gold);border-right:none;border-radius:8px 0 0 8px;position:relative">
+            <div style="position:absolute;top:10px;left:0;right:0;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.06em;font-weight:600">INCHES</div>
+            <!-- ticks at right=8,16,24(3"),32,40,48(6"),56,64,72(9"),80,88 -->
+            <div style="position:absolute;right:88px;bottom:0;width:2px;height:88px;background:var(--gold);border-radius:2px 0 0 0"></div>
+            <div style="position:absolute;right:80px;bottom:0;width:1.5px;height:14px;background:#9a7a30"></div>
+            <div style="position:absolute;right:72px;bottom:0;width:1.5px;height:10px;background:#9a7a30"></div>
+            <div style="position:absolute;right:64px;bottom:0;width:2px;height:28px;background:var(--gold)">
+              <span style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--gold-lt);white-space:nowrap">3"</span>
+            </div>
+            <div style="position:absolute;right:56px;bottom:0;width:1.5px;height:10px;background:#9a7a30"></div>
+            <div style="position:absolute;right:48px;bottom:0;width:1.5px;height:14px;background:#9a7a30"></div>
+            <div style="position:absolute;right:40px;bottom:0;width:2px;height:36px;background:var(--gold)">
+              <span style="position:absolute;bottom:38px;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--gold-lt);white-space:nowrap">6"</span>
+            </div>
+            <div style="position:absolute;right:32px;bottom:0;width:1.5px;height:10px;background:#9a7a30"></div>
+            <div style="position:absolute;right:24px;bottom:0;width:1.5px;height:14px;background:#9a7a30"></div>
+            <div style="position:absolute;right:16px;bottom:0;width:2px;height:28px;background:var(--gold)">
+              <span style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--gold-lt);white-space:nowrap">9"</span>
+            </div>
+            <div style="position:absolute;right:8px;bottom:0;width:1.5px;height:10px;background:#9a7a30"></div>
+          </div>
+
+          <!-- zero mark -->
+          <div style="flex:0 0 4px;background:var(--gold-lt);height:88px;position:relative">
+            <span style="position:absolute;top:-32px;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:26px;font-weight:900;color:var(--text);white-space:nowrap">0</span>
+          </div>
+
+          <!-- feet section: 6 cells of 96px -->
+          <div style="flex:1;display:flex;position:relative;height:88px">
+            <!-- worked example highlight: 3ft 6in = 3×96 + 6×8 = 336px -->
+            <div style="position:absolute;left:0;top:0;bottom:0;width:336px;background:rgba(204,56,56,.18);border-top:2px dashed var(--red);border-bottom:2px dashed var(--red);border-right:3px solid var(--red);pointer-events:none;z-index:1"></div>
+            <div style="position:absolute;left:168px;bottom:-30px;transform:translateX(-50%);z-index:2;text-align:center">
+              <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--red);background:var(--ink2);padding:2px 10px;border-radius:4px;border:1.5px solid var(--red);white-space:nowrap">← 3'−6" = 3.5 feet →</span>
+            </div>
+            <!-- 6 cells -->
+            <div style="flex:0 0 96px;background:#1a2800;border:2px solid #3a5010;border-left:none;height:88px;position:relative">
+              <span style="position:absolute;top:-32px;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:26px;font-weight:900;color:var(--text)">1</span>
+              <div style="position:absolute;right:48px;bottom:0;width:2px;height:22px;background:#3a6018"></div>
+              <div style="position:absolute;right:0;top:0;bottom:0;width:2px;background:#5a8030"></div>
+            </div>
+            <div style="flex:0 0 96px;background:#1a2800;border-top:2px solid #3a5010;border-bottom:2px solid #3a5010;height:88px;position:relative">
+              <span style="position:absolute;top:-32px;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:26px;font-weight:900;color:var(--text)">2</span>
+              <div style="position:absolute;right:48px;bottom:0;width:2px;height:22px;background:#3a6018"></div>
+              <div style="position:absolute;right:0;top:0;bottom:0;width:2px;background:#5a8030"></div>
+            </div>
+            <div style="flex:0 0 96px;background:#1a2800;border-top:2px solid #3a5010;border-bottom:2px solid #3a5010;height:88px;position:relative">
+              <span style="position:absolute;top:-32px;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:26px;font-weight:900;color:var(--text)">3</span>
+              <div style="position:absolute;right:48px;bottom:0;width:2px;height:22px;background:#3a6018"></div>
+              <div style="position:absolute;right:0;top:0;bottom:0;width:2px;background:#5a8030"></div>
+            </div>
+            <div style="flex:0 0 96px;background:#1a2800;border-top:2px solid #3a5010;border-bottom:2px solid #3a5010;height:88px;position:relative">
+              <span style="position:absolute;top:-32px;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:26px;font-weight:900;color:var(--text)">4</span>
+              <div style="position:absolute;right:48px;bottom:0;width:2px;height:22px;background:#3a6018"></div>
+              <div style="position:absolute;right:0;top:0;bottom:0;width:2px;background:#5a8030"></div>
+            </div>
+            <div style="flex:0 0 96px;background:#1a2800;border-top:2px solid #3a5010;border-bottom:2px solid #3a5010;height:88px;position:relative">
+              <span style="position:absolute;top:-32px;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:26px;font-weight:900;color:var(--text)">5</span>
+              <div style="position:absolute;right:48px;bottom:0;width:2px;height:22px;background:#3a6018"></div>
+              <div style="position:absolute;right:0;top:0;bottom:0;width:2px;background:#5a8030"></div>
+            </div>
+            <div style="flex:0 0 96px;background:#1a2800;border:2px solid #3a5010;border-left:none;border-radius:0 8px 8px 0;height:88px;position:relative">
+              <span style="position:absolute;top:-32px;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:26px;font-weight:900;color:var(--text)">6</span>
+              <div style="position:absolute;right:48px;bottom:0;width:2px;height:22px;background:#3a6018"></div>
+            </div>
+          </div>
+        </div>
+        <!-- bottom labels -->
+        <div style="display:inline-flex;min-width:680px;margin-top:40px">
+          <div style="width:100px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);font-weight:600;letter-spacing:.04em">← INCH SECTION<br>(1 foot ÷ 12)</div>
+          <div style="flex:1;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:#3ab5a8;font-weight:600;letter-spacing:.04em">FEET → (each division = 1 real foot)</div>
+        </div>
+      </div>
+
+      <div class="callout warn" style="margin-top:8px">
+        <div class="callout-icon">⚠️</div>
+        <div><strong>Most common mistake:</strong> Every edge has two scales — one reads left-to-right, the other right-to-left. If you accidentally read the wrong scale, every measurement will be wrong. Always find the <strong>0 mark first</strong> and only read outward from it. Never read from the physical end of the ruler.</div>
+      </div>
+
+      <div class="accordion" onclick="toggleAcc(this)">
+        <div class="acc-head">How to draw a line at 3'−6" using the architect's scale <span class="acc-chevron">▼</span></div>
+        <div class="acc-body"><div class="acc-inner">
+          <ol class="steps">
+            <li>Find the scale face you need — look for the number at the end of the ruler (e.g., <strong>¼</strong> for the ¼" = 1'−0" scale)</li>
+            <li>Place the <strong>0 mark</strong> at the start of your line. Not the end of the ruler — the zero mark.</li>
+            <li>Count to <strong>3 feet</strong> on the main scale to the right of zero — make a light mark</li>
+            <li>Now look at the <strong>inch section to the left of zero</strong>. Count 6 ticks from zero going left — that tick is 6 inches</li>
+            <li>Your drawn line needs to span from the 6-inch tick (left of zero) all the way to the 3-foot mark. That total distance is 3'−6"</li>
+          </ol>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- ── CIVIL ENGINEER'S SCALE ── -->
+    <div class="card">
+      <div class="card-label">Civil Engineer's Scale <span class="badge badge-imp">IMPERIAL CIVIL</span></div>
+
+      <p style="font-size:.9rem;color:var(--muted);line-height:1.8;margin-bottom:20px">The civil engineer's scale is used for site plans, surveys, roads, and other large-scale civil drawings. It has <strong style="color:var(--text)">6 faces labelled 10, 20, 30, 40, 50, and 60</strong>. The face number tells you how many feet are represented by one physical inch. Face "20" means 1 physical inch = 20 real feet. The numbers printed on the ruler directly label real distances in feet — no calculation needed at the ruler itself.</p>
+
+      <div class="chips">
+        <div class="chip gold">
+          <div class="chip-label">The Rule</div>
+          <div class="chip-title">Face number = feet per inch</div>
+          <div class="chip-body">Face "20" means every physical inch on the ruler represents <strong>20 real feet</strong>. Face "50" means every inch = 50 feet.</div>
+        </div>
+        <div class="chip teal">
+          <div class="chip-label">Reading It</div>
+          <div class="chip-title">The number IS the answer</div>
+          <div class="chip-body">No math needed at the ruler. If your line reaches the mark labelled "35", the real distance is <strong>35 feet</strong>. Simple.</div>
+        </div>
+        <div class="chip red">
+          <div class="chip-label">The Ratio</div>
+          <div class="chip-title">Face × 12 = denominator</div>
+          <div class="chip-body">To get the ratio: multiply the face number by 12. Face 20: 20 × 12 = 240, so the ratio is <strong>1:240</strong>.</div>
+        </div>
+      </div>
+
+      <!-- RULER: Face 20, 0–60 feet. Each 10ft = 80px. Sub-ticks every 2ft = 16px. -->
+      <div class="ruler-wrap">
+        <div class="ruler-caption">Civil engineer's scale — face "20" (1" = 20') &nbsp;·&nbsp; 0 to 60 feet</div>
+        <div style="min-width:500px">
+          <!-- foot labels above -->
+          <div style="display:flex;margin-bottom:6px;padding-left:4px">
+            <div style="width:0px"></div>
+            <div style="flex:0 0 80px;text-align:left"><span style="font-family:'DM Mono',monospace;font-size:22px;font-weight:900;color:var(--text)">0</span></div>
+            <div style="flex:0 0 80px;text-align:center"><span style="font-family:'DM Mono',monospace;font-size:22px;font-weight:900;color:var(--text)">10</span></div>
+            <div style="flex:0 0 80px;text-align:center"><span style="font-family:'DM Mono',monospace;font-size:22px;font-weight:900;color:var(--text)">20</span></div>
+            <div style="flex:0 0 80px;text-align:center"><span style="font-family:'DM Mono',monospace;font-size:22px;font-weight:900;color:var(--text)">30</span></div>
+            <div style="flex:0 0 80px;text-align:center"><span style="font-family:'DM Mono',monospace;font-size:22px;font-weight:900;color:var(--text)">40</span></div>
+            <div style="flex:0 0 80px;text-align:center"><span style="font-family:'DM Mono',monospace;font-size:22px;font-weight:900;color:var(--text)">50</span></div>
+            <div style="flex:0 0 80px;text-align:right;padding-right:4px"><span style="font-family:'DM Mono',monospace;font-size:22px;font-weight:900;color:var(--text)">60</span></div>
+          </div>
+          <!-- ruler body -->
+          <!-- 26ft highlight = 26/60 * 480 = 208px -->
+          <div style="display:flex;position:relative;height:80px;background:#1a1500;border:2px solid var(--gold);border-radius:8px">
+            <div style="position:absolute;left:0;top:0;bottom:0;width:208px;background:rgba(204,56,56,.18);border-right:3px solid var(--red);z-index:1;pointer-events:none"></div>
+            <div style="position:absolute;left:208px;bottom:-28px;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--red);background:var(--ink2);padding:2px 10px;border-radius:4px;border:1.5px solid var(--red);white-space:nowrap;z-index:2">26 ft</div>
+            <!-- major ticks at 10,20,30,40,50 = x:80,160,240,320,400 -->
+            <div style="position:absolute;left:80px;top:0;bottom:0;width:2.5px;background:var(--gold-lt);z-index:2"></div>
+            <div style="position:absolute;left:160px;top:0;bottom:0;width:2.5px;background:var(--gold-lt);z-index:2"></div>
+            <div style="position:absolute;left:240px;top:0;bottom:0;width:2.5px;background:var(--gold-lt);z-index:2"></div>
+            <div style="position:absolute;left:320px;top:0;bottom:0;width:2.5px;background:var(--gold-lt);z-index:2"></div>
+            <div style="position:absolute;left:400px;top:0;bottom:0;width:2.5px;background:var(--gold-lt);z-index:2"></div>
+            <!-- sub-ticks every 2ft = 16px -->
+            <div style="position:absolute;left:16px;bottom:0;width:1.5px;height:18px;background:#7a6020"></div>
+            <div style="position:absolute;left:32px;bottom:0;width:1.5px;height:28px;background:#9a8030"></div>
+            <div style="position:absolute;left:48px;bottom:0;width:1.5px;height:18px;background:#7a6020"></div>
+            <div style="position:absolute;left:64px;bottom:0;width:1.5px;height:28px;background:#9a8030"></div>
+            <div style="position:absolute;left:96px;bottom:0;width:1.5px;height:18px;background:#7a6020"></div>
+            <div style="position:absolute;left:112px;bottom:0;width:1.5px;height:28px;background:#9a8030"></div>
+            <div style="position:absolute;left:128px;bottom:0;width:1.5px;height:18px;background:#7a6020"></div>
+            <div style="position:absolute;left:144px;bottom:0;width:1.5px;height:28px;background:#9a8030"></div>
+            <div style="position:absolute;left:176px;bottom:0;width:1.5px;height:18px;background:#7a6020"></div>
+            <div style="position:absolute;left:192px;bottom:0;width:1.5px;height:28px;background:#9a8030"></div>
+            <div style="position:absolute;left:208px;bottom:0;width:1.5px;height:18px;background:#7a6020"></div>
+            <div style="position:absolute;left:224px;bottom:0;width:1.5px;height:28px;background:#9a8030"></div>
+            <div style="position:absolute;left:256px;bottom:0;width:1.5px;height:18px;background:#7a6020"></div>
+            <div style="position:absolute;left:272px;bottom:0;width:1.5px;height:28px;background:#9a8030"></div>
+            <div style="position:absolute;left:288px;bottom:0;width:1.5px;height:18px;background:#7a6020"></div>
+            <div style="position:absolute;left:304px;bottom:0;width:1.5px;height:28px;background:#9a8030"></div>
+            <div style="position:absolute;left:336px;bottom:0;width:1.5px;height:18px;background:#7a6020"></div>
+            <div style="position:absolute;left:352px;bottom:0;width:1.5px;height:28px;background:#9a8030"></div>
+            <div style="position:absolute;left:368px;bottom:0;width:1.5px;height:18px;background:#7a6020"></div>
+            <div style="position:absolute;left:384px;bottom:0;width:1.5px;height:28px;background:#9a8030"></div>
+            <div style="position:absolute;left:416px;bottom:0;width:1.5px;height:18px;background:#7a6020"></div>
+            <div style="position:absolute;left:432px;bottom:0;width:1.5px;height:28px;background:#9a8030"></div>
+            <div style="position:absolute;left:448px;bottom:0;width:1.5px;height:18px;background:#7a6020"></div>
+            <div style="position:absolute;left:464px;bottom:0;width:1.5px;height:28px;background:#9a8030"></div>
+          </div>
+          <div style="text-align:center;margin-top:38px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:.08em">FEET &nbsp;·&nbsp; Face 20 &nbsp;(1" = 20') &nbsp;·&nbsp; Each sub-tick = 2 feet</div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <div class="callout-icon">📖</div>
+        <div><strong>How to read 26 feet (worked example above):</strong> Find the face labelled "20". Place 0 at one end of your line. The other end falls between the 20 and 30 marks. Count 3 sub-ticks past the 20 mark. Each sub-tick = 2 feet. So: 20 + (3 × 2) = <strong>26 feet</strong>. That is the real-world distance.</div>
+      </div>
+
+      <table class="data-table" style="margin-top:16px">
+        <thead><tr><th>Face</th><th>1 inch equals</th><th>Formula</th><th>Ratio</th><th>Typical use</th></tr></thead>
+        <tbody>
+          <tr><td class="imp-tag">10</td><td>10 feet</td><td>10 × 12</td><td>1 : 120</td><td>Large site details</td></tr>
+          <tr><td class="imp-tag">20</td><td>20 feet</td><td>20 × 12</td><td>1 : 240</td><td>Subdivision layouts</td></tr>
+          <tr><td class="imp-tag">30</td><td>30 feet</td><td>30 × 12</td><td>1 : 360</td><td>Site plans</td></tr>
+          <tr><td class="imp-tag">40</td><td>40 feet</td><td>40 × 12</td><td>1 : 480</td><td>Larger site plans</td></tr>
+          <tr><td class="imp-tag">50</td><td>50 feet</td><td>50 × 12</td><td>1 : 600</td><td>Large site plans</td></tr>
+          <tr><td class="imp-tag">60</td><td>60 feet</td><td>60 × 12</td><td>1 : 720</td><td>Civil surveys</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── METRIC SCALE RULE ── -->
+    <div class="card">
+      <div class="card-label">Metric Scale Rule <span class="badge badge-met">METRIC</span></div>
+
+      <p style="font-size:.9rem;color:var(--muted);line-height:1.8;margin-bottom:20px">The metric scale rule has faces like <strong style="color:var(--text)">1:20, 1:25, 1:50, 1:75, 1:100, 1:125</strong>. Because metric is base-10, the numbers printed on the ruler directly show real-world sizes in millimetres. There is no conversion step — you just read the number. If the mark says "2000", the real object is 2000 mm = 2 metres long.</p>
+
+      <div class="chips">
+        <div class="chip teal">
+          <div class="chip-label">Read It</div>
+          <div class="chip-title">Number = real mm</div>
+          <div class="chip-body">On the 1:50 face, the mark labelled "2000" means the real object is <strong>2000 mm = 2 metres</strong>. Just read the number.</div>
+        </div>
+        <div class="chip teal">
+          <div class="chip-label">Verify It</div>
+          <div class="chip-title">Measure × scale = real</div>
+          <div class="chip-body">Physically measure 40 mm on the 1:50 face. 40 × 50 = <strong>2000 mm</strong>. The ruler already says "2000" there. ✓</div>
+        </div>
+        <div class="chip gold">
+          <div class="chip-label">Draw a Line</div>
+          <div class="chip-title">Real ÷ scale = ruler length</div>
+          <div class="chip-body">To draw a 3000 mm wall at 1:50: 3000 ÷ 50 = <strong>60 mm</strong>. Find "3000" on the ruler and stop your line there.</div>
+        </div>
+      </div>
+
+      <!-- METRIC RULER: 1:50, 0–3000mm. Major every 500mm = 80px. Sub-tick every 100mm = 16px. -->
+      <div class="ruler-wrap">
+        <div class="ruler-caption">Metric scale — 1:50 face &nbsp;·&nbsp; Numbers show real-world mm &nbsp;·&nbsp; 0 to 3000 mm</div>
+        <div style="min-width:500px">
+          <div style="display:flex;margin-bottom:6px">
+            <div style="flex:0 0 80px;text-align:left"><span style="font-family:'DM Mono',monospace;font-size:20px;font-weight:900;color:var(--text)">0</span></div>
+            <div style="flex:0 0 80px;text-align:center"><span style="font-family:'DM Mono',monospace;font-size:20px;font-weight:900;color:var(--text)">500</span></div>
+            <div style="flex:0 0 80px;text-align:center"><span style="font-family:'DM Mono',monospace;font-size:20px;font-weight:900;color:var(--text)">1000</span></div>
+            <div style="flex:0 0 80px;text-align:center"><span style="font-family:'DM Mono',monospace;font-size:20px;font-weight:900;color:var(--text)">1500</span></div>
+            <div style="flex:0 0 80px;text-align:center"><span style="font-family:'DM Mono',monospace;font-size:20px;font-weight:900;color:var(--text)">2000</span></div>
+            <div style="flex:0 0 80px;text-align:center"><span style="font-family:'DM Mono',monospace;font-size:20px;font-weight:900;color:var(--text)">2500</span></div>
+            <div style="flex:0 0 80px;text-align:right;padding-right:4px"><span style="font-family:'DM Mono',monospace;font-size:20px;font-weight:900;color:var(--text)">3000</span></div>
+          </div>
+          <!-- 1600mm highlight = 1600/3000*480 = 256px -->
+          <div style="display:flex;position:relative;height:80px;background:#001a16;border:2px solid var(--teal-lt);border-radius:8px">
+            <div style="position:absolute;left:0;top:0;bottom:0;width:256px;background:rgba(204,56,56,.18);border-right:3px solid var(--red);z-index:1;pointer-events:none"></div>
+            <div style="position:absolute;left:256px;bottom:-28px;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--red);background:var(--ink2);padding:2px 10px;border-radius:4px;border:1.5px solid var(--red);white-space:nowrap;z-index:2">1600 mm</div>
+            <!-- major ticks at 500,1000,1500,2000,2500 = x:80,160,240,320,400 -->
+            <div style="position:absolute;left:80px;top:0;bottom:0;width:2.5px;background:var(--teal-lt);z-index:2"></div>
+            <div style="position:absolute;left:160px;top:0;bottom:0;width:2.5px;background:var(--teal-lt);z-index:2"></div>
+            <div style="position:absolute;left:240px;top:0;bottom:0;width:2.5px;background:var(--teal-lt);z-index:2"></div>
+            <div style="position:absolute;left:320px;top:0;bottom:0;width:2.5px;background:var(--teal-lt);z-index:2"></div>
+            <div style="position:absolute;left:400px;top:0;bottom:0;width:2.5px;background:var(--teal-lt);z-index:2"></div>
+            <!-- sub-ticks every 100mm = 16px -->
+            <div style="position:absolute;left:16px;bottom:0;width:1.5px;height:18px;background:#1a6058"></div>
+            <div style="position:absolute;left:32px;bottom:0;width:1.5px;height:28px;background:var(--teal)"></div>
+            <div style="position:absolute;left:48px;bottom:0;width:1.5px;height:18px;background:#1a6058"></div>
+            <div style="position:absolute;left:64px;bottom:0;width:1.5px;height:28px;background:var(--teal)"></div>
+            <div style="position:absolute;left:96px;bottom:0;width:1.5px;height:18px;background:#1a6058"></div>
+            <div style="position:absolute;left:112px;bottom:0;width:1.5px;height:28px;background:var(--teal)"></div>
+            <div style="position:absolute;left:128px;bottom:0;width:1.5px;height:18px;background:#1a6058"></div>
+            <div style="position:absolute;left:144px;bottom:0;width:1.5px;height:28px;background:var(--teal)"></div>
+            <div style="position:absolute;left:176px;bottom:0;width:1.5px;height:18px;background:#1a6058"></div>
+            <div style="position:absolute;left:192px;bottom:0;width:1.5px;height:28px;background:var(--teal)"></div>
+            <div style="position:absolute;left:208px;bottom:0;width:1.5px;height:18px;background:#1a6058"></div>
+            <div style="position:absolute;left:224px;bottom:0;width:1.5px;height:28px;background:var(--teal)"></div>
+            <div style="position:absolute;left:256px;bottom:0;width:1.5px;height:18px;background:#1a6058"></div>
+            <div style="position:absolute;left:272px;bottom:0;width:1.5px;height:28px;background:var(--teal)"></div>
+            <div style="position:absolute;left:288px;bottom:0;width:1.5px;height:18px;background:#1a6058"></div>
+            <div style="position:absolute;left:304px;bottom:0;width:1.5px;height:28px;background:var(--teal)"></div>
+            <div style="position:absolute;left:336px;bottom:0;width:1.5px;height:18px;background:#1a6058"></div>
+            <div style="position:absolute;left:352px;bottom:0;width:1.5px;height:28px;background:var(--teal)"></div>
+            <div style="position:absolute;left:368px;bottom:0;width:1.5px;height:18px;background:#1a6058"></div>
+            <div style="position:absolute;left:384px;bottom:0;width:1.5px;height:28px;background:var(--teal)"></div>
+            <div style="position:absolute;left:416px;bottom:0;width:1.5px;height:18px;background:#1a6058"></div>
+            <div style="position:absolute;left:432px;bottom:0;width:1.5px;height:28px;background:var(--teal)"></div>
+            <div style="position:absolute;left:448px;bottom:0;width:1.5px;height:18px;background:#1a6058"></div>
+            <div style="position:absolute;left:464px;bottom:0;width:1.5px;height:28px;background:var(--teal)"></div>
+          </div>
+          <div style="text-align:center;margin-top:38px;font-family:'DM Mono',monospace;font-size:11px;color:var(--teal-lt);letter-spacing:.08em">MILLIMETRES (real-world) &nbsp;·&nbsp; Scale 1:50 &nbsp;·&nbsp; Each sub-tick = 100 mm</div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <div class="callout-icon">📖</div>
+        <div><strong>How to read 1600 mm (worked example above):</strong> Find the 1:50 face. Place 0 at one end of your line. The other end falls just past the 1500 mark. Count <strong>1 sub-tick past 1500</strong> (each sub-tick = 100 mm). 1500 + 100 = <strong>1600 mm = 1.6 metres</strong>. Verify: physically the line is 32 mm × 50 = 1600 mm ✓</div>
+      </div>
+    </div>
+
+    <!-- ── CAD ── -->
+    <div class="card">
+      <div class="card-label">Scale in CAD Software <span class="badge badge-cad">DIGITAL</span></div>
+      <p style="font-size:.9rem;color:var(--muted);line-height:1.8;margin-bottom:16px">In AutoCAD, Revit, and other CAD programs, you <strong style="color:var(--text)">always draw at full real-world size</strong> in Model Space. A 6-metre wall is drawn exactly 6000 mm long. You never manually shrink anything in Model Space. Scale is only applied later, when you set up a viewport for printing in Paper Space.</p>
+      <div class="two-col">
+        <div class="sys-panel met"><h3>Model Space — Draw Full Size</h3><p>Every object is drawn at 1:1 — its actual real-world size. A room that is 5000 mm wide is drawn exactly 5000 mm. Never shrink things here.</p></div>
+        <div class="sys-panel imp"><h3>Paper Space — Set Your Scale</h3><p>When you create a viewport to print from, you set the scale there. A 1:50 viewport will print the model at 1:50. Text heights and dimensions must match your chosen scale.</p></div>
+      </div>
+      <div class="callout warn" style="margin-top:16px">
+        <div class="callout-icon">⚠️</div>
+        <div><strong>Why scale knowledge still matters in CAD:</strong> You must choose the right viewport scale, set text heights correctly (text height = desired print height × scale factor), and make sure dimension styles show the correct units. Getting this wrong is one of the most common drawing errors in industry.</div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <button class="nav-next" onclick="goTo('calc')">Next: Calculator →</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════ 4: CALCULATOR ══════════ -->
+<div id="page-calc" class="page">
+<div class="content-page">
+  <div class="content-header">
+    <div class="content-header-inner">
+      <div class="ch-eyebrow">Module 04</div>
+      <div class="ch-title">Scale Calculator</div>
+      <div class="ch-sub">Two tools: convert a real-world size to a drawing size, or convert a measured drawing size back to real life.</div>
+    </div>
+  </div>
+  <div class="content-body">
+
+    <!-- REAL → DRAWING -->
+    <div class="card">
+      <div class="card-label">Real Size → Drawing Size</div>
+      <p style="font-size:.88rem;color:var(--muted);line-height:1.75;margin-bottom:18px">You know the real-world measurement. How long should the line be on your drawing?<br><strong style="color:var(--text)">Formula: Drawing = Real ÷ Scale</strong></p>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <div class="ctrl-label">Real-world size</div>
+          <input type="number" id="c-real-val" value="6000" min="0.001" step="1" oninput="runCalc()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Unit</div>
+          <select id="c-real-unit" onchange="runCalc()">
+            <option value="mm" selected>mm</option>
+            <option value="cm">cm</option>
+            <option value="m">metres</option>
+            <option value="ft">feet</option>
+            <option value="in">inches</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Scale</div>
+          <select id="c-scale" onchange="runCalc()">
+            <optgroup label="── Metric ──">
+              <option value="5">1 : 5</option>
+              <option value="10">1 : 10</option>
+              <option value="20">1 : 20</option>
+              <option value="25">1 : 25</option>
+              <option value="50" selected>1 : 50</option>
+              <option value="100">1 : 100</option>
+              <option value="200">1 : 200</option>
+              <option value="500">1 : 500</option>
+              <option value="1000">1 : 1000</option>
+            </optgroup>
+            <optgroup label="── Imperial Arch ──">
+              <option value="4">3" = 1'−0" (1:4)</option>
+              <option value="8">1½" = 1'−0" (1:8)</option>
+              <option value="12">1" = 1'−0" (1:12)</option>
+              <option value="16">¾" = 1'−0" (1:16)</option>
+              <option value="24">½" = 1'−0" (1:24)</option>
+              <option value="48">¼" = 1'−0" (1:48)</option>
+              <option value="96">⅛" = 1'−0" (1:96)</option>
+              <option value="192">1/16" = 1'−0" (1:192)</option>
+            </optgroup>
+            <optgroup label="── Civil Engineering ──">
+              <option value="120">1" = 10' (face 10)</option>
+              <option value="240">1" = 20' (face 20)</option>
+              <option value="360">1" = 30' (face 30)</option>
+              <option value="480">1" = 40' (face 40)</option>
+              <option value="600">1" = 50' (face 50)</option>
+              <option value="720">1" = 60' (face 60)</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+      <div class="result-grid">
+        <div class="result-cell"><div class="rc-label">Drawing size</div><div class="rc-value big" id="r-draw-mm">—</div></div>
+        <div class="result-cell"><div class="rc-label">Drawing size (cm)</div><div class="rc-value" id="r-draw-cm">—</div></div>
+        <div class="result-cell"><div class="rc-label">Drawing size (inches)</div><div class="rc-value" id="r-draw-in">—</div></div>
+        <div class="result-cell"><div class="rc-label">Real size confirmed</div><div class="rc-value" id="r-real-mm">—</div></div>
+        <div class="result-cell"><div class="rc-label">Real size (metres)</div><div class="rc-value" id="r-real-m">—</div></div>
+        <div class="result-cell"><div class="rc-label">Real size (ft + in)</div><div class="rc-value" id="r-real-ftin">—</div></div>
+      </div>
+    </div>
+
+    <!-- DRAWING → REAL -->
+    <div class="card">
+      <div class="card-label">Drawing Size → Real Size</div>
+      <p style="font-size:.88rem;color:var(--muted);line-height:1.75;margin-bottom:18px">You measured a line on a drawing. What is the real-world size of that object?<br><strong style="color:var(--text)">Formula: Real = Drawing × Scale</strong></p>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <div class="ctrl-label">Measured on drawing</div>
+          <input type="number" id="c-draw-val" value="120" min="0.001" step="0.1" oninput="runRevCalc()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Unit</div>
+          <select id="c-draw-unit" onchange="runRevCalc()">
+            <option value="mm" selected>mm</option>
+            <option value="cm">cm</option>
+            <option value="in">inches</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Scale</div>
+          <select id="c-scale-rev" onchange="runRevCalc()">
+            <optgroup label="── Metric ──">
+              <option value="5">1 : 5</option>
+              <option value="10">1 : 10</option>
+              <option value="20">1 : 20</option>
+              <option value="25">1 : 25</option>
+              <option value="50" selected>1 : 50</option>
+              <option value="100">1 : 100</option>
+              <option value="200">1 : 200</option>
+              <option value="500">1 : 500</option>
+            </optgroup>
+            <optgroup label="── Imperial Arch ──">
+              <option value="4">3" = 1'−0" (1:4)</option>
+              <option value="8">1½" = 1'−0" (1:8)</option>
+              <option value="12">1" = 1'−0" (1:12)</option>
+              <option value="48">¼" = 1'−0" (1:48)</option>
+              <option value="96">⅛" = 1'−0" (1:96)</option>
+            </optgroup>
+            <optgroup label="── Civil Engineering ──">
+              <option value="120">face 10</option>
+              <option value="240">face 20</option>
+              <option value="360">face 30</option>
+              <option value="480">face 40</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+      <div class="result-grid">
+        <div class="result-cell"><div class="rc-label">Real size (mm)</div><div class="rc-value big" id="rr-mm">—</div></div>
+        <div class="result-cell"><div class="rc-label">Real size (m)</div><div class="rc-value" id="rr-m">—</div></div>
+        <div class="result-cell"><div class="rc-label">Real size (ft + in)</div><div class="rc-value" id="rr-ftin">—</div></div>
+        <div class="result-cell"><div class="rc-label">Real size (cm)</div><div class="rc-value" id="rr-cm">—</div></div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <button class="nav-next" onclick="goTo('visualizer')">Next: Visualizer →</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════ 5: VISUALIZER ══════════ -->
+<div id="page-visualizer" class="page">
+<div class="content-page">
+  <div class="content-header">
+    <div class="content-header-inner">
+      <div class="ch-eyebrow">Module 05</div>
+      <div class="ch-title">Scale Visualizer</div>
+      <div class="ch-sub">Pick a real-world object size and a scale. See exactly how large the drawing would be on paper — and compare the same object drawn at four different scales side by side.</div>
+    </div>
+  </div>
+  <div class="content-body">
+
+    <!-- SINGLE SCALE VIEWER -->
+    <div class="card">
+      <div class="card-label">Drawing Size Preview</div>
+      <p style="font-size:.88rem;color:var(--muted);line-height:1.75;margin-bottom:18px">Enter a real-world size and a scale. The box below shows exactly how large that object would appear on your drawing. The <strong style="color:var(--text)">dimension numbers never change</strong> — only the box size changes.</p>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <div class="ctrl-label">Real width (mm)</div>
+          <input type="number" id="vis-w" value="6000" min="1" step="100" oninput="drawVis()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Real height (mm)</div>
+          <input type="number" id="vis-h" value="4000" min="1" step="100" oninput="drawVis()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Scale</div>
+          <select id="vis-scale" onchange="drawVis()">
+            <option value="10">1 : 10</option>
+            <option value="20">1 : 20</option>
+            <option value="50" selected>1 : 50</option>
+            <option value="100">1 : 100</option>
+            <option value="200">1 : 200</option>
+            <option value="500">1 : 500</option>
+          </select>
+        </div>
+      </div>
+      <div class="vis-stage" id="vis-single"></div>
+      <div id="vis-note" style="margin-top:12px;font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);text-align:center"></div>
+    </div>
+
+    <!-- FOUR-SCALE COMPARISON -->
+    <div class="card">
+      <div class="card-label">Same Object — Four Scales Side by Side</div>
+      <p style="font-size:.88rem;color:var(--muted);line-height:1.75;margin-bottom:18px">Every box below represents the <strong style="color:var(--text)">exact same 6 m × 4 m room</strong>. The room doesn't change — only the scale does. Notice how dramatically the drawing size changes while the dimension labels stay the same.</p>
+      <div id="vis-comparison" style="overflow-x:auto;padding-bottom:8px"></div>
+    </div>
+
+    <div class="page-footer">
+      <button class="nav-next" onclick="goTo('reference')">Next: Reference Sheet →</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════ 6: REFERENCE ══════════ -->
+<div id="page-reference" class="page">
+<div class="content-page">
+  <div class="content-header">
+    <div class="content-header-inner">
+      <div class="ch-eyebrow">Module 06</div>
+      <div class="ch-title">Reference Sheet</div>
+      <div class="ch-sub">Everything in one place. Keep this open while you work.</div>
+    </div>
+  </div>
+  <div class="content-body">
+
+    <div class="card">
+      <div class="card-label">The Two Formulas</div>
+      <div class="two-col">
+        <div>
+          <p style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--teal-lt);letter-spacing:.1em;margin-bottom:8px">REAL → DRAWING</p>
+          <div class="formula">Drawing = Real ÷ Scale</div>
+          <p style="font-size:.8rem;color:var(--muted);margin-top:10px;line-height:1.7">6000 mm real, scale 1:50<br><strong style="color:var(--text)">6000 ÷ 50 = 120 mm on paper</strong></p>
+        </div>
+        <div>
+          <p style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--gold);letter-spacing:.1em;margin-bottom:8px">DRAWING → REAL</p>
+          <div class="formula">Real = Drawing × Scale</div>
+          <p style="font-size:.8rem;color:var(--muted);margin-top:10px;line-height:1.7">75 mm on paper, scale 1:100<br><strong style="color:var(--text)">75 × 100 = 7500 mm = 7.5 m</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Key Unit Conversions</div>
+      <div class="unit-pills">
+        <div class="unit-pill"><span class="up-from">1 in</span><span class="up-eq">=</span><span class="up-to">25.4 mm</span></div>
+        <div class="unit-pill"><span class="up-from">1 ft</span><span class="up-eq">=</span><span class="up-to">304.8 mm</span></div>
+        <div class="unit-pill"><span class="up-from">1 ft</span><span class="up-eq">=</span><span class="up-to">12 in</span></div>
+        <div class="unit-pill"><span class="up-from">1 m</span><span class="up-eq">=</span><span class="up-to">1000 mm</span></div>
+        <div class="unit-pill"><span class="up-from">1 m</span><span class="up-eq">=</span><span class="up-to">100 cm</span></div>
+        <div class="unit-pill"><span class="up-from">1 cm</span><span class="up-eq">=</span><span class="up-to">10 mm</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Common Metric Scales</div>
+      <div class="scale-card-grid">
+        <div class="scale-card"><div class="sc-ratio">1 : 1</div><div class="sc-use">Full size — small parts, details</div></div>
+        <div class="scale-card"><div class="sc-ratio">1 : 5</div><div class="sc-use">Large details, connections, joints</div></div>
+        <div class="scale-card"><div class="sc-ratio">1 : 10</div><div class="sc-use">Construction details, sections</div></div>
+        <div class="scale-card"><div class="sc-ratio">1 : 20</div><div class="sc-use">Detailed room layouts</div></div>
+        <div class="scale-card"><div class="sc-ratio">1 : 25</div><div class="sc-use">Bathroom / kitchen details</div></div>
+        <div class="scale-card"><div class="sc-ratio">1 : 50</div><div class="sc-use">Standard floor plan</div></div>
+        <div class="scale-card"><div class="sc-ratio">1 : 100</div><div class="sc-use">Building overview / elevations</div></div>
+        <div class="scale-card"><div class="sc-ratio">1 : 200</div><div class="sc-use">Site context, small buildings</div></div>
+        <div class="scale-card"><div class="sc-ratio">1 : 500</div><div class="sc-use">Site plans, blocks</div></div>
+        <div class="scale-card"><div class="sc-ratio">1 : 1000</div><div class="sc-use">Large area site plans</div></div>
+        <div class="scale-card"><div class="sc-ratio">2 : 1</div><div class="sc-use">Enlargement — small parts</div></div>
+        <div class="scale-card"><div class="sc-ratio">5 : 1</div><div class="sc-use">Enlargement — tiny parts</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Imperial Architectural Scales</div>
+      <table class="data-table">
+        <thead><tr><th>Notation</th><th>Ratio</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td class="imp-tag">3" = 1'−0"</td><td>1 : 4</td><td>Large interior details</td></tr>
+          <tr><td class="imp-tag">1½" = 1'−0"</td><td>1 : 8</td><td>Millwork, large details</td></tr>
+          <tr><td class="imp-tag">1" = 1'−0"</td><td>1 : 12</td><td>Room details</td></tr>
+          <tr><td class="imp-tag">¾" = 1'−0"</td><td>1 : 16</td><td>Larger room details</td></tr>
+          <tr><td class="imp-tag">½" = 1'−0"</td><td>1 : 24</td><td>Floor plan detail</td></tr>
+          <tr><td class="imp-tag">⅜" = 1'−0"</td><td>1 : 32</td><td>Medium floor plans</td></tr>
+          <tr><td class="imp-tag">¼" = 1'−0"</td><td>1 : 48</td><td>Standard floor plan</td></tr>
+          <tr><td class="imp-tag">⅛" = 1'−0"</td><td>1 : 96</td><td>Smaller floor plans</td></tr>
+          <tr><td class="imp-tag">1/16" = 1'−0"</td><td>1 : 192</td><td>Site plans</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Civil Engineer's Scale Faces</div>
+      <table class="data-table">
+        <thead><tr><th>Face</th><th>1" = X feet</th><th>Ratio</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td class="imp-tag">10</td><td>10 ft</td><td>1 : 120</td><td>Large site details</td></tr>
+          <tr><td class="imp-tag">20</td><td>20 ft</td><td>1 : 240</td><td>Subdivisions</td></tr>
+          <tr><td class="imp-tag">30</td><td>30 ft</td><td>1 : 360</td><td>Site plans</td></tr>
+          <tr><td class="imp-tag">40</td><td>40 ft</td><td>1 : 480</td><td>Larger site plans</td></tr>
+          <tr><td class="imp-tag">50</td><td>50 ft</td><td>1 : 600</td><td>Large site plans</td></tr>
+          <tr><td class="imp-tag">60</td><td>60 ft</td><td>1 : 720</td><td>Civil surveys</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-label">How to Choose a Scale</div>
+      <ol class="steps">
+        <li>Know your <strong>paper size</strong> (A4, A3, A1, etc.)</li>
+        <li>Know the <strong>real-world size</strong> of what you're drawing (in mm)</li>
+        <li>Divide: <strong>paper size ÷ real size</strong> to get a rough scale factor</li>
+        <li>Pick the <strong>nearest standard scale</strong> that is equal to or smaller</li>
+        <li>Verify: <strong>real size ÷ scale</strong> should fit on your paper with margin to spare</li>
+      </ol>
+    </div>
+
+    <div class="page-footer">
+      <button class="nav-next" onclick="goTo('home')">← Back to Home</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+'use strict';
+
+// ── NAVIGATION ────────────────────────────────────────
+const PAGE_IDS = ['home','what','systems','tools','calc','visualizer','reference'];
+
+function goTo(id) {
+  PAGE_IDS.forEach(pid => document.getElementById('page-' + pid).classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach((b, i) => b.classList.toggle('active', PAGE_IDS[i] === id));
+  document.getElementById('page-' + id).classList.add('active');
+  window.scrollTo(0,0);
+  if (id === 'calc')       { runCalc(); runRevCalc(); }
+  if (id === 'visualizer') { setTimeout(() => { drawVis(); drawComparison(); }, 60); }
+}
+
+// ── ACCORDION ─────────────────────────────────────────
+function toggleAcc(el) { el.classList.toggle('open'); }
+
+// ── UNIT HELPERS ──────────────────────────────────────
+const TO_MM = { mm:1, cm:10, m:1000, ft:304.8, in:25.4 };
+function toMm(v,u){ return v*(TO_MM[u]||1); }
+function fmt(n,d){ if(!isFinite(n)) return '—'; return parseFloat(n.toFixed(d)).toString(); }
+function mmToFtIn(mm){
+  if(!isFinite(mm)||mm<0) return '—';
+  const totalIn = mm/25.4;
+  const ft = Math.floor(totalIn/12);
+  const i  = totalIn - ft*12;
+  return ft+"' "+fmt(i,2)+'"';
+}
+
+// ── CALCULATOR: Real → Drawing ────────────────────────
+function runCalc(){
+  const val  = parseFloat(document.getElementById('c-real-val').value);
+  const unit = document.getElementById('c-real-unit').value;
+  const scl  = parseFloat(document.getElementById('c-scale').value);
+  if(!isFinite(val)||val<=0||!isFinite(scl)||scl<=0) return;
+  const realMm = toMm(val,unit);
+  const drawMm = realMm/scl;
+  document.getElementById('r-draw-mm').textContent  = fmt(drawMm,4)+' mm';
+  document.getElementById('r-draw-cm').textContent  = fmt(drawMm/10,5)+' cm';
+  document.getElementById('r-draw-in').textContent  = fmt(drawMm/25.4,5)+'"';
+  document.getElementById('r-real-mm').textContent  = fmt(realMm,3)+' mm';
+  document.getElementById('r-real-m').textContent   = fmt(realMm/1000,5)+' m';
+  document.getElementById('r-real-ftin').textContent = mmToFtIn(realMm);
+}
+
+// ── CALCULATOR: Drawing → Real ────────────────────────
+function runRevCalc(){
+  const val  = parseFloat(document.getElementById('c-draw-val').value);
+  const unit = document.getElementById('c-draw-unit').value;
+  const scl  = parseFloat(document.getElementById('c-scale-rev').value);
+  if(!isFinite(val)||val<=0||!isFinite(scl)||scl<=0) return;
+  const drawMm = toMm(val,unit);
+  const realMm = drawMm*scl;
+  document.getElementById('rr-mm').textContent   = fmt(realMm,3)+' mm';
+  document.getElementById('rr-m').textContent    = fmt(realMm/1000,5)+' m';
+  document.getElementById('rr-ftin').textContent = mmToFtIn(realMm);
+  document.getElementById('rr-cm').textContent   = fmt(realMm/10,4)+' cm';
+}
+
+// ── VISUALIZER: Single scale preview ─────────────────
+function drawVis(){
+  const realW = parseFloat(document.getElementById('vis-w').value)||6000;
+  const realH = parseFloat(document.getElementById('vis-h').value)||4000;
+  const scale = parseFloat(document.getElementById('vis-scale').value)||50;
+  const stage = document.getElementById('vis-single');
+  const note  = document.getElementById('vis-note');
+  if(!stage) return;
+
+  // Paper size of drawing in mm
+  const paperW = realW / scale;
+  const paperH = realH / scale;
+
+  // Fit into display area max ~700×400px, with generous padding
+  const maxDisplayW = 640;
+  const maxDisplayH = 380;
+  const ratio = Math.min(maxDisplayW / paperW, maxDisplayH / paperH, 4); // cap at 4px per mm so tiny drawings aren't invisible
+  const minRatio = Math.max(ratio, 0.3); // floor: never smaller than 0.3px per paper mm
+
+  const dispW = Math.round(paperW * minRatio);
+  const dispH = Math.round(paperH * minRatio);
+
+  // Color based on scale
+  const colors = {10:'rgba(200,146,42,.18)',20:'rgba(200,146,42,.14)',50:'rgba(42,138,128,.14)',100:'rgba(42,80,180,.12)',200:'rgba(120,40,180,.10)',500:'rgba(200,50,50,.10)'};
+  const borderColors = {10:'#c8922a',20:'#c8922a',50:'#2a8a80',100:'#3a5aaa',200:'#7a30bb',500:'#cc3838'};
+  const bg = colors[scale] || 'rgba(100,100,100,.1)';
+  const bd = borderColors[scale] || '#888';
+
+  // SVG with box, dimension labels, and scale bar
+  const ox = 50, oy = 30;
+  const svgW = dispW + ox + 20;
+  const svgH = dispH + oy + 60;
+
+  const scaleBarRealMm = scale <= 50 ? 1000 : scale <= 200 ? 5000 : 10000;
+  const scaleBarPx = scaleBarRealMm / scale * minRatio;
+
+  const widthLabel = realW >= 1000 ? fmt(realW/1000,2)+' m' : realW+' mm';
+  const heightLabel = realH >= 1000 ? fmt(realH/1000,2)+' m' : realH+' mm';
+
+  stage.innerHTML = `
+    <svg viewBox="0 0 ${svgW} ${svgH}" width="${svgW}" height="${svgH}" style="display:block;max-width:100%;overflow:visible">
+      <!-- dimension line top -->
+      <line x1="${ox}" y1="${oy-12}" x2="${ox+dispW}" y2="${oy-12}" stroke="${bd}" stroke-width="1.2"/>
+      <line x1="${ox}" y1="${oy-18}" x2="${ox}" y2="${oy-6}" stroke="${bd}" stroke-width="1.2"/>
+      <line x1="${ox+dispW}" y1="${oy-18}" x2="${ox+dispW}" y2="${oy-6}" stroke="${bd}" stroke-width="1.2"/>
+      <text x="${ox+dispW/2}" y="${oy-16}" font-size="12" fill="${bd}" text-anchor="middle" font-family="DM Mono,monospace" font-weight="700">${widthLabel}</text>
+      <!-- dimension line left -->
+      <line x1="${ox-12}" y1="${oy}" x2="${ox-12}" y2="${oy+dispH}" stroke="${bd}" stroke-width="1.2"/>
+      <line x1="${ox-18}" y1="${oy}" x2="${ox-6}" y2="${oy}" stroke="${bd}" stroke-width="1.2"/>
+      <line x1="${ox-18}" y1="${oy+dispH}" x2="${ox-6}" y2="${oy+dispH}" stroke="${bd}" stroke-width="1.2"/>
+      <text x="${ox-16}" y="${oy+dispH/2}" font-size="12" fill="${bd}" text-anchor="middle" font-family="DM Mono,monospace" font-weight="700" transform="rotate(-90 ${ox-16} ${oy+dispH/2})">${heightLabel}</text>
+      <!-- box -->
+      <rect x="${ox}" y="${oy}" width="${dispW}" height="${dispH}" fill="${bg}" stroke="${bd}" stroke-width="2"/>
+      <!-- label inside -->
+      <text x="${ox+dispW/2}" y="${oy+dispH/2-8}" font-size="13" fill="${bd}" text-anchor="middle" font-family="DM Mono,monospace" font-weight="700">Scale 1:${scale}</text>
+      <text x="${ox+dispW/2}" y="${oy+dispH/2+10}" font-size="11" fill="#9a9aaa" text-anchor="middle" font-family="DM Mono,monospace">Drawing: ${fmt(paperW,1)} × ${fmt(paperH,1)} mm</text>
+      <!-- scale bar -->
+      <rect x="${ox}" y="${oy+dispH+18}" width="${scaleBarPx/2}" height="6" fill="${bd}"/>
+      <rect x="${ox+scaleBarPx/2}" y="${oy+dispH+18}" width="${scaleBarPx/2}" height="6" fill="transparent" stroke="${bd}" stroke-width="1.5"/>
+      <line x1="${ox}" y1="${oy+dispH+15}" x2="${ox}" y2="${oy+dispH+27}" stroke="${bd}" stroke-width="1.5"/>
+      <line x1="${ox+scaleBarPx}" y1="${oy+dispH+15}" x2="${ox+scaleBarPx}" y2="${oy+dispH+27}" stroke="${bd}" stroke-width="1.5"/>
+      <text x="${ox}" y="${oy+dispH+40}" font-size="10" fill="#9a9aaa" text-anchor="start" font-family="DM Mono,monospace">0</text>
+      <text x="${ox+scaleBarPx}" y="${oy+dispH+40}" font-size="10" fill="#9a9aaa" text-anchor="end" font-family="DM Mono,monospace">${scaleBarRealMm>=1000?fmt(scaleBarRealMm/1000,1)+'m':scaleBarRealMm+'mm'}</text>
+    </svg>`;
+
+  if(note) note.textContent = `At scale 1:${scale}, a ${widthLabel} × ${heightLabel} real space is drawn as ${fmt(paperW,1)} × ${fmt(paperH,1)} mm on paper.`;
+}
+
+// ── VISUALIZER: Four-scale comparison ────────────────
+function drawComparison(){
+  const wrap = document.getElementById('vis-comparison');
+  if(!wrap) return;
+
+  const realW = 6000, realH = 4000;
+  const scales = [20, 50, 100, 200];
+  const bd = ['#c8922a','#2a8a80','#3a5aaa','#7a30bb'];
+  const bg = ['rgba(200,146,42,.12)','rgba(42,138,128,.12)','rgba(58,90,170,.12)','rgba(120,48,180,.10)'];
+
+  // Base: at 1:20, paperW = 300mm. Show at 1.2px/mm → 360px wide.
+  const pxPerPaperMm = 1.2;
+
+  const boxes = scales.map((s,i) => {
+    const pW = realW/s;
+    const pH = realH/s;
+    return { scale:s, pW, pH, dispW: pW*pxPerPaperMm, dispH: pH*pxPerPaperMm, bd:bd[i], bg:bg[i] };
+  });
+
+  const topPad = 48, botPad = 56, sidePad = 20;
+  const maxH = boxes[0].dispH;
+  let x = sidePad;
+  boxes.forEach(b => { b.x = x; x += b.dispW + sidePad; });
+  const totalW = x;
+  const totalH = maxH + topPad + botPad;
+
+  const content = boxes.map(b => {
+    const boxTop = topPad + (maxH - b.dispH);
+    const cx = b.x + b.dispW/2;
+    const fs = Math.max(9, Math.min(14, b.dispW/10));
+    return `
+      <rect x="${b.x}" y="${boxTop}" width="${b.dispW}" height="${b.dispH}" fill="${b.bg}" stroke="${b.bd}" stroke-width="2"/>
+      <text x="${cx}" y="${boxTop - 18}" font-size="16" font-weight="800" fill="${b.bd}" text-anchor="middle" font-family="DM Mono,monospace">1:${b.scale}</text>
+      ${b.dispW > 40 && b.dispH > 24 ? `<text x="${cx}" y="${boxTop+b.dispH/2+fs*0.4}" font-size="${fs}" fill="#9a9aaa" text-anchor="middle" font-family="DM Mono,monospace">6m × 4m</text>` : ''}
+      <text x="${cx}" y="${totalH - botPad + 22}" font-size="11" fill="${b.bd}" text-anchor="middle" font-family="DM Mono,monospace">${fmt(b.pW,0)} × ${fmt(b.pH,0)} mm</text>
+      <text x="${cx}" y="${totalH - botPad + 36}" font-size="9.5" fill="#666" text-anchor="middle" font-family="DM Mono,monospace">on paper</text>
+    `;
+  }).join('');
+
+  wrap.innerHTML = `
+    <svg viewBox="0 0 ${totalW} ${totalH}" width="${totalW}" height="${totalH}" style="display:block;max-width:100%;min-width:${totalW}px">
+      <rect width="${totalW}" height="${totalH}" fill="var(--ink)" rx="10"/>
+      <text x="${totalW/2}" y="18" font-size="10" fill="#666" text-anchor="middle" font-family="DM Mono,monospace">Same 6 m × 4 m room drawn at four different scales</text>
+      ${content}
+    </svg>`;
+}
+
+// ── INIT ──────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  runCalc();
+  runRevCalc();
+});
+</script>
+</body>
+</html>
